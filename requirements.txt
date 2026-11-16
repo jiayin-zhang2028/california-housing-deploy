@@ -15,8 +15,9 @@ joblib>=1.3,<2.0
 pytest>=8.0,<9.0
 httpx>=0.27,<1.0
 
-# TensorFlow：**必须装**，不是因为要训练，而是因为推理时要能反序列化 Keras 模型。
-# 我们的 artifacts/model_bundle.joblib 里装的是一个 Keras 模型，
-# joblib.load() 的过程中就要 import keras/tensorflow —— 容器里没它，启动即失败。
-# 代价：镜像 +500MB 左右，冷启动慢 10~20 秒。如果想省掉，就换成 sklearn 版 bundle。
-tensorflow>=2.20,<3.0
+# TensorFlow：**线上部署时不要装**。
+# 原因：部署平台（Render 免费层）只给 512MB 内存，TF 光加载就要 500MB+，会被 OOM 杀掉。
+# 所以线上跑的是 sklearn 版模型（artifacts/model_bundle.joblib 由 src/train.py 产出）。
+# 你的 Keras 模型（california_housing_model.keras）仍保留在仓库里做对照实验，
+# 本地想跑 Keras 版：pip install tensorflow 然后 python -m src.keras_bundle
+# tensorflow>=2.20,<3.0

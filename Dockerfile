@@ -32,11 +32,12 @@ USER appuser
 EXPOSE 8000
 
 # 健康检查：让 docker / K8s 知道这个容器是不是真的能干活
-# start-period 给 60s：sklearn 版几秒就起来，但 Keras 版要加载 TensorFlow，
-# 20s 会误判成 unhealthy 然后被反复重启（真会踩的坑）。
+# 端口用 ${PORT:-8000}：Render / Railway / Cloud Run 这些平台会通过 PORT 环境变量指定端口，
+# 写死 8000 的话平台的健康检查永远失败（"起不来的容器"最常见的真凶）。
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3).status == 200 else 1)"
+    CMD python -c "import os,urllib.request,sys; p=os.environ.get('PORT','8000'); sys.exit(0 if urllib.request.urlopen(f'http://127.0.0.1:{p}/health', timeout=3).status == 200 else 1)"
 
-# --workers 2：模型推理是 CPU 密集，多进程才能吃到多核（Python GIL 决定线程没用）。
-# 注意 workers 数 ≈ CPU 核数，而不是越大越好：每个 worker 都会各自加载一份模型进内存。
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# 端口同样读 $PORT：本地默认 8000，Render 上会自动注入它要求的端口。
+# --workers 1：免费层只给 512MB 内存，每个 worker 都要单独加载一份模型，
+# 开 2 个容易 OOM（被平台杀掉）。核数多的时候再调大。
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
