@@ -1,0 +1,39 @@
+# CI：每次 push 都自动证明「这条链路还能跑」。
+#
+# 它挡住的正是最常见的灾难：
+#   本机能跑 -> 换台机器/半年后 -> 跑不起来 -> 无法复现 -> 交付失败。
+#
+# 分两步：先训（链路通不通），再测（行为对不对）。
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: housing-deploy/requirements.txt
+
+      - name: 安装依赖
+        working-directory: housing-deploy
+        run: pip install -r requirements.txt
+
+      - name: 训练冒烟（合成数据，不需要 Kaggle 数据集）
+        working-directory: housing-deploy
+        run: python -m src.train --synthetic --max-iter 80
+
+      - name: 单元 + 接口测试
+        working-directory: housing-deploy
+        run: python -m pytest
+
+      - name: 镜像能构建
+        working-directory: housing-deploy
+        run: docker build -t housing-pred:ci .

@@ -1,0 +1,20 @@
+# 训练产物：每个人本地重新生成，不进版本库
+artifacts/
+logs/
+
+# 数据：从 Kaggle 自己下，别把几十 MB 的 csv 塞进 git
+data/*.csv
+data/*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,20 @@
+# 直接依赖（用 >=,< 区间锁大版本；真正上线建议 pip freeze 出一份精确版本）
+# 为什么锁版本：你今天能跑的 tensorflow/sklearn，半年后 pip install 出来可能是另一个版本，
+# 反序列化老模型直接报错。这是「昨天还好好的」类事故最常见的成因。
+
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30,<1.0
+pydantic>=2.7,<3.0
+
+pandas>=2.0,<4.0
+numpy>=1.26,<3.0
+scikit-learn>=1.4,<2.0
+joblib>=1.3,<2.0
+
+# 测试
+pytest>=8.0,<9.0
+httpx>=0.27,<1.0
+
+# 如果你想继续用 Keras（而不是 sklearn 版模型），把下面这行取消注释：
+# 注意：tensorflow 装完约 500MB+，会显著拖慢镜像构建和冷启动。
+# tensorflow>=2.16,<3.0

@@ -1,0 +1,13 @@
+# 别把这些打进镜像：既浪费体积，也可能泄漏数据
+.git
+.github
+__pycache__
+*.pyc
+.pytest_cache
+.venv
+venv
+data/
+logs/
+tests/
+*.md
+.gitignore
